@@ -3,18 +3,9 @@
 
 package app.tivi.common.compose.ui
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.with
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,11 +13,11 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.DefaultAlpha
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -48,14 +39,12 @@ import com.seiko.imageloader.model.ImageRequestBuilder
 import com.seiko.imageloader.model.ImageResult
 import com.seiko.imageloader.option.SizeResolver
 import com.seiko.imageloader.toPainter
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.datetime.Clock
 
-@OptIn(ExperimentalCoroutinesApi::class, ExperimentalAnimationApi::class)
 @Composable
 fun AsyncImage(
     model: Any?,
@@ -81,52 +70,49 @@ fun AsyncImage(
         }
     }
 
-    var crossfade by remember(request) { mutableStateOf(true) }
-    var result by remember { mutableStateOf<ImageResult?>(null) }
+    val firstShown = remember { Clock.System.now() }
 
-    LaunchedEffect(imageLoader) {
-        snapshotFlow { request }
-            .filterNotNull()
-            .flatMapLatest { imageLoader.async(it) }
+    var crossfade by remember(request) { mutableStateOf(false) }
+
+    val result by produceState<ImageResult?>(initialValue = null, request, imageLoader) {
+        imageLoader.async(request)
             .collect { action ->
                 onAction?.invoke(action)
 
                 if (action is ImageResult) {
-                    // Crossfade if the current result is null
-                    crossfade = result == null
-                    result = action
+                    if (!crossfade) {
+                        crossfade = firstShown < Clock.System.now() - 80.milliseconds
+                    }
+
+                    println("Image load time: ${Clock.System.now() - firstShown}. Crossfade: $crossfade")
+
+                    value = action
                 }
             }
     }
 
-    AnimatedContent(
-        targetState = result to crossfade,
-        transitionSpec = {
-            val (_, xfade) = targetState
-            when {
-                xfade -> fadeIn(tween(200)) with fadeOut(tween(200))
-                else -> {
-                    // If it's loaded from the memory cache, don't fade it in
-                    EnterTransition.None with ExitTransition.None
-                }
-            }
-        },
-        modifier = modifier,
-    ) { (r, _) ->
-        ResultImage(
-            result = r,
-            alignment = alignment,
-            contentDescription = contentDescription,
-            contentScale = contentScale,
-            alpha = alpha,
-            colorFilter = colorFilter,
-            modifier = Modifier
-                .fillMaxSize()
-                .then(sizeResolver),
-            filterQuality = filterQuality,
-        )
+    val colorMatrix by animateImageLoadingColorMatrixAsState(crossfade) {
+        crossfade = false
     }
+
+    ResultImage(
+        result = result,
+        alignment = alignment,
+        contentDescription = contentDescription,
+        contentScale = contentScale,
+        alpha = alpha,
+        colorFilter = when {
+            colorMatrix != IdentityMatrix -> ColorFilter.colorMatrix(colorMatrix)
+            else -> colorFilter
+        },
+        modifier = modifier
+            .fillMaxSize()
+            .then(sizeResolver),
+        filterQuality = filterQuality,
+    )
 }
+
+private val IdentityMatrix = ColorMatrix()
 
 @Composable
 private fun ResultImage(
