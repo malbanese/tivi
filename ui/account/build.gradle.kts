@@ -17,6 +17,8 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(projects.core.base)
+                implementation(projects.core.logging.api)
+
                 implementation(projects.domain)
                 implementation(projects.common.ui.compose)
                 implementation(projects.data.traktauth) // This should really be used through an interactor

@@ -29,6 +29,20 @@ kotlin {
                 api(projects.domain)
                 api(projects.tasks)
 
+                api(projects.data.legacy)
+                api(projects.data.episodes)
+                api(projects.data.followedshows)
+                api(projects.data.popularshows)
+                api(projects.data.recommendedshows)
+                api(projects.data.relatedshows)
+                api(projects.data.search)
+                api(projects.data.showimages)
+                api(projects.data.shows)
+                api(projects.data.traktauth)
+                api(projects.data.traktusers)
+                api(projects.data.trendingshows)
+                api(projects.data.watchedshows)
+
                 api(projects.common.imageloading)
                 api(projects.common.ui.compose)
 

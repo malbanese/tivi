@@ -12,6 +12,8 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(projects.core.base)
+                api(projects.data.models)
+
                 implementation(projects.core.logging.api)
                 implementation(libs.kotlinx.datetime)
             }
@@ -42,8 +44,8 @@ kotlin {
 
 android {
     namespace = "app.tivi.data.traktauth"
-
     defaultConfig {
         manifestPlaceholders += mapOf("appAuthRedirectScheme" to "empty")
     }
+
 }

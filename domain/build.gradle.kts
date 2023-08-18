@@ -13,21 +13,21 @@ kotlin {
                 implementation(projects.core.base)
 
                 api(projects.data.models)
-                implementation(projects.data.db) // remove this eventually
-                api(projects.data.legacy) // remove this eventually
 
-                api(projects.data.episodes)
-                api(projects.data.followedshows)
-                api(projects.data.popularshows)
-                api(projects.data.recommendedshows)
-                api(projects.data.relatedshows)
-                api(projects.data.search)
-                api(projects.data.showimages)
-                api(projects.data.shows)
-                api(projects.data.traktauth)
-                api(projects.data.traktusers)
-                api(projects.data.trendingshows)
-                api(projects.data.watchedshows)
+                implementation(projects.data.db) // remove this eventually
+                implementation(projects.data.legacy) // remove this eventually
+                implementation(projects.data.episodes)
+                implementation(projects.data.followedshows)
+                implementation(projects.data.popularshows)
+                implementation(projects.data.recommendedshows)
+                implementation(projects.data.relatedshows)
+                implementation(projects.data.search)
+                implementation(projects.data.showimages)
+                implementation(projects.data.shows)
+                implementation(projects.data.traktauth)
+                implementation(projects.data.traktusers)
+                implementation(projects.data.trendingshows)
+                implementation(projects.data.watchedshows)
 
                 implementation(projects.api.tmdb)
 

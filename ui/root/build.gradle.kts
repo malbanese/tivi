@@ -17,6 +17,8 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(projects.core.base)
+                implementation(projects.core.logging.api)
+
                 implementation(projects.core.analytics)
                 implementation(projects.common.ui.compose)
 
